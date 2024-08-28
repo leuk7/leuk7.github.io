@@ -1,10 +1,10 @@
 ---
 title: 'TryHackMe: Expose'
 author: leuk7
+date: 2024-08-28
 categories: [TryHackMe]
 tags: [web, node, docker, mysql, rce]
-render_with_liquid: false
-img_path: 
+render_with_liquid: false 
 image: 
   path: https://tryhackme-images.s3.amazonaws.com/room-icons/43dbcdbcb05245407984a3a40922fe15.png
 ---
