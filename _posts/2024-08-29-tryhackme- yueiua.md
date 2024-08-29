@@ -1,5 +1,5 @@
 ---
-title: "TryHackMe:"
+title: "TryHackMe: U.A. High School"
 author: leuk7
 categories:
   - TryHackMe
@@ -10,14 +10,15 @@ tags:
   - Web_Shell
   - Root_Shell_Script
 render_with_liquid: false
+media_subpath: /assets/images_rooms/tryhackme_yueiua
 image:
-  path: https://tryhackme-images.s3.amazonaws.com/room-icons/11c2b861cb1add6468a32d0be7b26b44.png
-"img_path:": /images/tryhackme_yueiua
+  path: room_image.png
 ---
 
-Dodge started by inspecting the certificate of a https webserver to get a list of subdomains and enumerating these subdomains to find a PHP endpoint that allowed disabling the UFW firewall. After disabling the firewall, it was possible to access a FTP server and get a SSH key for a user, which allowed us to get a shell on the machine. After this, using port forwarding to access an internal website and logging in with the credentials found in the comments of the same website gave us credentials for another user. With this new user, we were able to abuse sudo privileges and get a shell as root.
+Join us in the mission to protect the digital world of superheroes! U.A., the most renowned Superhero Academy, is looking for a superhero to test the security of our new site.
+Our site is a reflection of our school values, designed by our engineers with incredible Quirks. We have gone to great lengths to create a secure platform that reflects the exceptional education of the U.A.
 
-[![Tryhackme Room Link](https://tryhackme-images.s3.amazonaws.com/room-icons/11c2b861cb1add6468a32d0be7b26b44.png){: width="300" height="300" .shadow}](https://tryhackme.com/r/room/yueiua){: .center }
+[![Tryhackme Room Link](room_image.png){: width="300" height="300" .shadow}](https://tryhackme.com/r/room/yueiua){: .center }
 
 ## Initial enumeration
 
@@ -67,7 +68,7 @@ With a nmap scan, there are three ports open:
 
 The root page look like that:
 
-![[root-page-http.png]]
+![Website Index Page](root-page-http.png){: width="1000" height="400" }
 
 Since the index page do not end with `.php`, it most likely not using php.
 Also there is a `CONTACT` page with a form, which could vulnerable to `XSS` or `SQL Injection`. Unfortunately, we did not manage to found any vulnerability there. 
@@ -94,7 +95,7 @@ Starting gobuster in directory enumeration mode
 
 There is a folder name `assets`, but when access it, it return a blank page. But the weird part is that the there is an `images` folder with the background image there.
 
-![[root-page-background-img.png]]
+![Website root page background image](root-page-background-img.png){: width="1000" height="400" }
 
 Adding `index.html` after the `assets` folder return a 404 status. But changing it to `index.php` we return our blank page. We can conclude that there is a `index.php` file inside `/assets`. At this point the `index.php` could be a backdoor place by someone and could be using a parameter to execute shell command. Let's try to fuzz the `index.php` parameters.
 
@@ -119,17 +120,6 @@ Found: [Status=200] [Length=72] [Word=cmd] http://10.10.49.127/assets/index.php?
                                                
 ```
 The `index.php` is in fact vulnerable to a command injection. Using revshell website, we could generate a paylod and get a reverse shell, after having setup a reverse shell listener.
-
-```bash
-
-```
-![Subdomains](subdomains.webp){: width="400" height="300" }
-
-Adding them to `/etc/hosts`
-```
-10.10.64.72 dodge.thm www.dodge.thm blog.dodge.thm dev.dodge.thm touch-me-not.dodge.thm netops-dev.dodge.thm ball.dodge.thm
-```
-{: file="/etc/hosts" }
 
 ## Get User Shell
 ```
@@ -195,13 +185,13 @@ We successfuly find a file `passphrase.txt` and crack its content `AllmightForEv
 There are also file `oneforall.jpg` with a type of `data` but the extension is `jpg`. We will retrieve it to our attacking box, to take a closer look.
 After inspecting the file with `hexeditor`, we have noticed that the magic bytes for the file is PNG instead of JPG.
 
-![[oneforall-magic-byte-before.png]]
+![oneforall-magic-byte-before.png](oneforall-magic-byte-before.png){: width="500" height="200" }
 
 Let's modify it to reflect the actual file extension. We could use this [link](https://gist.github.com/leommoore/f9e57ba2aa4bf197ebc5) to look for the magic byte of JPEG (FF D8 FF E0 00 10 4A 46 49 46).
 
-![[oneforall-magic-byte-after.png]]
+![oneforall-magic-byte-after.png](oneforall-magic-byte-after.png){: width="500" height="200" }
 
-![[oneforall.png]]
+![oneforall.png](oneforall.png){: width="1000" height="400" }
 
 Let's try to investigate or maybe crackit (with the discovered password) with steghide:
 
